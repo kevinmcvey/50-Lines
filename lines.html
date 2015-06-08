@@ -2,331 +2,45 @@
     <head>
         <title>50 Lines - Kevin McVey</title>
         <link rel="stylesheet" type="text/css" href="style.css">
+        <script src="SVGPane.js" type="text/javascript"></script>
+        <script src="ShapeModel.js" type="text/javascript"></script>
+        <script src="ImageController.js" type="text/javascript"></script>
+        <script src="InputManager.js" type="text/javascript"></script>
     </head>
     <body style='width:100%; height:100%; margin: 0px;'>
         <div id="svg_div"></div>
         <div id="control_div" onmouseover='document.getElementById("control_div").style.opacity=0.4'
                                onmouseout='document.getElementById("control_div").style.opacity=0.0'>
-            <textarea id="draw_controls" onkeyup="handleCommandUpdate()" rows="1">hvfb,vfbh,fbhv,bhvf</textarea>
+            <textarea id="draw_controls" onkeyup="handleControlUpdate()" rows="1">hvfb,vfbh,fbhv,bhvf</textarea>
             <span id="title">50 Lines by Kevin McVey . Enter combinations of HVFBN to explore</span>
         </div>
     </body>
 
     <script>
+        var svgPane = SVGPane("svg_div");
+        var shapeModel = ShapeModel(svgPane);
+        var imageController = ImageController();
+        var inputManager = InputManager();
 
-    var sourceSVGDiv; // Used for accessing the SVG window in the DOM
-    var svg; // Used for appending elements to the SVG div
-    var drawCommands = [['h', 'v', 'f', 'b'], ['v', 'f', 'b', 'h'], ['f', 'b', 'h', 'v'], ['b', 'h', 'v', 'f']];
-	var urlFriendlyDrawString = 'hvfb,vfbh,fbhv,bhvf';
+        function keyEventWrapper(keyEvent) {
+            inputManager.handleKeyPress(keyEvent.keyCode);
+            //Chromium doesn't like this from localhost. Commented out for use on raspberry pi
+            //history.pushState("","","lines.html?" + inputManager.urlFriendlyDrawString);
 
-    // SVG window setup
-    function initializeSVGWindow() {
-        sourceSVGDiv = document.getElementById("svg_div");
-        svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.setAttribute("version", "1.2");
-        svg.setAttribute("baseProfile", "tiny");
-        svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-        svg.setAttribute("overflow", "visible");
-        sourceSVGDiv.appendChild(svg);
-    }
-
-    // Primary draw function
-    function drawImage(newDrawCommands) {
-        // User defined constants
-        var numberOfLinesPerBox = 50;
-        var numberOfBoxesX = drawCommands[0].length;
-        var numberOfBoxesY = drawCommands.length;
-        var lineColor = "#000";
-
-        // Image constants
-        var minBlankWindowSpaceXPercent = 0.1;
-        var minBlankWindowSpaceYPercent = 0.1;
-        var spaceBetweenBoxesPercent = 0.03;
-
-        var browserWindowWidth = window.innerWidth;
-        var browserWindowHeight = window.innerHeight;
-        var startOfImageX = minBlankWindowSpaceXPercent * browserWindowWidth;
-        var startOfImageY = minBlankWindowSpaceYPercent * browserWindowHeight;
-
-        // Box Definition
-        var spaceBetweenBoxesX = spaceBetweenBoxesPercent * browserWindowWidth;
-        var spaceBetweenBoxesY = spaceBetweenBoxesPercent * browserWindowHeight;
-        var spaceBetweenBoxes = Math.min(spaceBetweenBoxesX, spaceBetweenBoxesY);
-
-        var sizeOfBoxX = (browserWindowWidth -
-                         (browserWindowWidth * minBlankWindowSpaceXPercent * 2) -
-                         (spaceBetweenBoxes * (numberOfBoxesX - 1))) /
-                         numberOfBoxesX;
-
-        var sizeOfBoxY = (browserWindowHeight -
-                         (browserWindowHeight * minBlankWindowSpaceYPercent * 2) -
-                         (spaceBetweenBoxes * (numberOfBoxesY - 1))) /
-                         numberOfBoxesY;
-
-        var sizeOfBox = Math.min(sizeOfBoxX, sizeOfBoxY);
-
-        // Center the image in the SVG window
-        var blankSpaceRight = browserWindowWidth -
-                              (numberOfBoxesX * sizeOfBox) -
-                              ((numberOfBoxesX - 1) * spaceBetweenBoxes) -
-                              (startOfImageX * 2);
-
-        var blankSpaceBottom = browserWindowHeight -
-                               (numberOfBoxesY * sizeOfBox) -
-                               ((numberOfBoxesY - 1) * spaceBetweenBoxes) -
-                               (startOfImageY * 2);
-
-        startOfImageX += blankSpaceRight / 2;
-        startOfImageY += blankSpaceBottom / 2;
-
-        // Determine location of boxes & draw them
-        for (var row = 0; row < numberOfBoxesY; row++) {
-            for (var column = 0; column < numberOfBoxesX; column++) {
-                var boxXCoordinate = startOfImageX + (column * (sizeOfBox + spaceBetweenBoxes));
-                var boxYCoordinate = startOfImageY + (row * (sizeOfBox + spaceBetweenBoxes));
-
-                drawBoxBasedOnCommand(newDrawCommands[row][column], numberOfLinesPerBox,
-                                      boxXCoordinate, boxYCoordinate, sizeOfBox, sizeOfBox, lineColor);
-            }
-        }
-    }
-
-    function handleCommandUpdate() {
-        updateDrawCommands(document.getElementById("draw_controls").value);
-        history.pushState("","","lines.html?" + urlFriendlyDrawString);
-        clearImage();
-        drawImage(drawCommands);
-    }
-
-    function translateUrlCharacters(commandText) {
-		commandText = commandText.replace(/%2C/g, ",");
-		commandText = commandText.replace(/%20/g, " ");
-		return commandText;
-	}
-
-    function updateDrawCommands(newCommandText) {
-        var newDrawCommands = [[]];
-        var row = 0;
-        var rowLength = 0;
-        var maxRowLength = 0;
-        urlFriendlyDrawString = '';
-
-        // For compatibility's sake...
-        newCommandText = translateUrlCharacters(newCommandText);
-
-        for (var index = 0; index < newCommandText.length; index++) {
-            switch (newCommandText[index].toLowerCase()) {
-                case 'h':
-                case 'v':
-                case 'f':
-                case 'b':
-                case 'n':
-                    newDrawCommands[row].push(newCommandText[index]);
-                    urlFriendlyDrawString += newCommandText[index];
-                    rowLength++;
-                    break;
-                case ',':
-                    newDrawCommands.push([]);
-                    urlFriendlyDrawString += ',';
-                    rowLength = 0;
-                    row++;
-                    break;
-                case ' ':
-                    newDrawCommands[row].push('n');
-                    urlFriendlyDrawString += 'n';
-                    rowLength++;
-                    break;
-                default:
-                    console.error("Invalid character: " + newCommandText[index]);
-			}
-
-            maxRowLength = Math.max(maxRowLength, rowLength);
+            shapeModel.svgPane.clearPane();
+            imageController.drawImage(inputManager.drawCommands, inputManager.cursorLocation, shapeModel);
+            var cursor = document.getElementById("cursor");
         }
 
-        // Even out the rows if left uneven
-        for (var row = 0; row < newDrawCommands.length; row++) {
-            for (var unfilledColumn = maxRowLength - newDrawCommands[row].length;
-                                    unfilledColumn > 0; unfilledColumn--) {
-                newDrawCommands[row].push(' ');
-            }
-        }
+        inputManager.ingestUrlParameters();
 
-        drawCommands = newDrawCommands;
-    }
+        // Draw the default image
+        imageController.drawImage(inputManager.drawCommands, inputManager.cursorLocation, shapeModel);
 
-    function clearImage() {
-        sourceSVGDiv.innerHTML = "";
-        initializeSVGWindow();
-    }
+        // Set the control box's default visibility
+        document.getElementById("control_div").style.opacity=0.4;
 
-    function drawSVGPath(pathString, hexColor) {
-        var svgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        svgPath.setAttribute("stroke", hexColor);
-        svgPath.setAttribute("d", pathString);
-        svgPath.setAttribute("stroke-width", 0.5);
-        svg.appendChild(svgPath);
-    }
-
-    function drawSVGLine(startX, startY, endX, endY, lineColor) {
-        drawSVGPath("M" + startX + "," + startY +
-                    "L" + endX + "," + endY,
-                    lineColor);
-    }
-
-    function drawHorizontalSVGBox(linesToDraw, boxBaseX, boxBaseY,
-                                  boxSizeX, boxSizeY, lineColor) {
-
-        for(var lineNumber = 0; lineNumber < linesToDraw; lineNumber++) {
-            var lineStartX = boxBaseX;
-            var lineStartY = boxBaseY + ((lineNumber / (linesToDraw - 1)) * boxSizeY);
-            var lineEndX = boxBaseX + boxSizeX;
-            var lineEndY = lineStartY;
-
-            drawSVGLine(lineStartX, lineStartY, lineEndX, lineEndY, lineColor);
-        }
-    }
-
-    function drawVerticalSVGBox(linesToDraw, boxBaseX, boxBaseY,
-                                boxSizeX, boxSizeY, lineColor) {
-
-        for(var lineNumber = 0; lineNumber < linesToDraw; lineNumber++) {
-            var lineStartX = boxBaseX + ((lineNumber / (linesToDraw - 1)) * boxSizeX);
-            var lineStartY = boxBaseY;
-            var lineEndX = lineStartX;
-            var lineEndY = boxBaseY + boxSizeY;
-
-            drawSVGLine(lineStartX, lineStartY, lineEndX, lineEndY, lineColor);
-        }
-    }
-
-    function drawForwardDiagonalSVGBox(linesToDraw, boxBaseX, boxBaseY,
-                                       boxSizeX, boxSizeY, lineColor) {
-
-        var boxHypoLength = Math.sqrt((boxSizeX * boxSizeX) + (boxSizeY * boxSizeY));
-
-        for(var lineNumber = 0; lineNumber < linesToDraw; lineNumber++) {
-            var hypoIntersection = ((lineNumber + 1) / (linesToDraw + 1)) * boxHypoLength;
-
-            // Calculate endpoint offset along X axis ("end" of forward slash)
-            var xBoxHypoAngle = Math.atan(boxSizeY/boxSizeX);
-            var leftPartOfXOffset = Math.cos(xBoxHypoAngle) * hypoIntersection;
-            var rightPartOfXOffset = Math.tan(Math.PI / 4) * Math.sin(xBoxHypoAngle) * hypoIntersection;
-            var lineEndpointXOffset = leftPartOfXOffset + rightPartOfXOffset;
-
-            // Calculate endpoint offset along Y axis ("start" of forward slash)
-            var yBoxHypoAngle = Math.atan(boxSizeX/boxSizeY);
-            var topPartOfYOffset = Math.cos(yBoxHypoAngle) * hypoIntersection;
-            var bottomPartOfYOffset = Math.tan(Math.PI / 4) * Math.sin(yBoxHypoAngle) * hypoIntersection;
-            var lineEndpointYOffset = topPartOfYOffset + bottomPartOfYOffset;
-
-            var lineStartX = boxBaseX;
-            var lineStartY = boxBaseY + lineEndpointYOffset;
-            var lineEndX = boxBaseX + lineEndpointXOffset;
-            var lineEndY = boxBaseY;
-
-            // Modify lines starting below the allowed box
-            if(lineStartY > (boxSizeY + boxBaseY)) {
-                lineStartX += (lineStartY - (boxSizeY + boxBaseY));
-                lineStartY = (boxSizeY + boxBaseY);
-            }
-
-            // Modify lines ending to the right of the allowed box
-            if(lineEndX > (boxSizeX + boxBaseX)) {
-                lineEndY += (lineEndX - (boxSizeX + boxBaseX));
-                lineEndX = (boxSizeX + boxBaseX);
-            }
-
-            drawSVGLine(lineStartX, lineStartY, lineEndX, lineEndY, lineColor);
-        }
-    }
-
-    function drawBackwardDiagonalSVGBox(linesToDraw, boxBaseX, boxBaseY,
-                                        boxSizeX, boxSizeY, lineColor) {
-
-        var boxHypoLength = Math.sqrt((boxSizeX * boxSizeX) + (boxSizeY * boxSizeY));
-
-        for(var lineNumber = 0; lineNumber < linesToDraw; lineNumber++) {
-            var hypoIntersection = ((lineNumber + 1) / (linesToDraw + 1)) * boxHypoLength;
-
-            // Calculate endpoint offset along X axis ("end" of backslash)
-            var xBoxHypoAngle = Math.atan(boxSizeY/boxSizeX);
-            var leftPartOfXOffset  = Math.cos(xBoxHypoAngle) * hypoIntersection;
-            var rightPartOfXOffset = Math.tan(Math.PI / 4) * Math.sin(xBoxHypoAngle) * hypoIntersection;
-            var lineEndpointXOffset = leftPartOfXOffset + rightPartOfXOffset;
-
-            // Calculate endpoint offset along Y axis ("start" of backslash)
-            var yBoxHypoAngle = Math.atan(boxSizeX/boxSizeY);
-            var topPartOfYOffset    = Math.cos(yBoxHypoAngle) * hypoIntersection;
-            var bottomPartOfYOffset = Math.tan(Math.PI / 4) * Math.sin(yBoxHypoAngle) * hypoIntersection;
-            var lineEndpointYOffset = topPartOfYOffset + bottomPartOfYOffset;
-
-            var lineStartX = boxBaseX;
-            var lineStartY = (boxBaseY + boxSizeY) - lineEndpointYOffset;
-            var lineEndX = boxBaseX + lineEndpointXOffset;
-            var lineEndY = boxBaseY + boxSizeY;
-
-            // Modify lines beginning above the allowed box
-            if(lineStartY < boxBaseY) {
-                lineStartX += (boxBaseY - lineStartY);
-                lineStartY = boxBaseY;
-            }
-
-            // Modify lines ending to the right of the allowed box
-            if(lineEndX > (boxSizeX + boxBaseX)) {
-                lineEndY -= (lineEndX - (boxSizeX + boxBaseX));
-                lineEndX = (boxSizeX + boxBaseX);
-            }
-
-            drawSVGLine(lineStartX, lineStartY, lineEndX, lineEndY, lineColor);
-        }
-    }
-
-    function drawBoxBasedOnCommand(command,
-                                   linesToDraw, boxBaseX, boxBaseY,
-                                   boxSizeX, boxSizeY, lineColor) {
-        switch (command.toLowerCase()) {
-            case 'h':
-                drawHorizontalSVGBox(linesToDraw, boxBaseX, boxBaseY,
-                                     boxSizeX, boxSizeY, lineColor);
-                break;
-            case 'v':
-                drawVerticalSVGBox(linesToDraw, boxBaseX, boxBaseY,
-                                   boxSizeX, boxSizeY, lineColor);
-                break;
-            case 'f':
-                drawForwardDiagonalSVGBox(linesToDraw, boxBaseX, boxBaseY,
-                                          boxSizeX, boxSizeY, lineColor);
-                break;
-            case 'b':
-                drawBackwardDiagonalSVGBox(linesToDraw, boxBaseX, boxBaseY,
-                                           boxSizeX, boxSizeY, lineColor);
-                break;
-            case 'n': // The 'no-op' box
-            case ' ':
-                break;
-            default:
-                console.error("NOT A VALID OPERATION");
-        }
-    }
-
-    initializeSVGWindow();
-
-    // Utilize string from URL if present
-    if (location.search != "") {
-        var newCommandText = location.search.slice(1, location.search.length);
-        newCommandText = translateUrlCharacters(newCommandText);
-        console.log(newCommandText);
-        updateDrawCommands(newCommandText);
-        document.getElementById("draw_controls").value = newCommandText;
-    }
-
-	// Draw the default image
-	drawImage(drawCommands);
-
-    window.onresize = function() { clearImage(); drawImage(drawCommands); };
-
-	// Set the control box's default visibility
-    document.getElementById("control_div").style.opacity=0.4;
-
+        window.onresize = function() { svgPane.clearPane(); imageController.drawImage(inputManager.drawCommands, inputManager.cursorLocation, shapeModel); };
+        document.addEventListener("keydown", keyEventWrapper, false);
     </script>
 </html>
