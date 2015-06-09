@@ -67,9 +67,15 @@ ImageController.prototype = {
                 shapeModel.drawBoxBasedOnCommand(drawCommands[row][column], numberOfLinesPerBox,
                                       boxXCoordinate, boxYCoordinate, sizeOfBox, sizeOfBox, lineColor);
 
-                if (row == cursorLocation[0] && column == cursorLocation[1]) {
-                    shapeModel.drawCursor(boxXCoordinate - spaceBetweenBoxes / 2,
-                                          boxYCoordinate, sizeOfBox, lineColor);
+                // TODO: his needs to be moved elsewhere.
+                if (row == cursorLocation[0]) {
+                    if (column == cursorLocation[1]) {
+                        shapeModel.drawCursor(boxXCoordinate - spaceBetweenBoxes / 2,
+                                              boxYCoordinate, sizeOfBox, lineColor);
+                    } else if (column == (numberOfBoxesX - 1) && cursorLocation[1] == numberOfBoxesX) {
+                        shapeModel.drawCursor(boxXCoordinate + sizeOfBox + spaceBetweenBoxes / 2,
+                                              boxYCoordinate, sizeOfBox, lineColor);
+                    }
                 }
             }
         }

@@ -53,7 +53,6 @@ InputManager.prototype = {
     },
 
     moveCursorLeft: function() {
-        console.log(this.drawCommands);
         var gridY = this.cursorLocation[0];
         var gridX = this.cursorLocation[1];
 
@@ -68,11 +67,9 @@ InputManager.prototype = {
 
         this.cursorLocation[0] = gridY;
         this.cursorLocation[1] = gridX;
-        console.log(this.cursorLocation);
     },
 
     moveCursorRight: function() {
-        console.log(this.drawCommands);
         var gridY = this.cursorLocation[0];
         var gridX = this.cursorLocation[1];
 
@@ -87,7 +84,6 @@ InputManager.prototype = {
 
         this.cursorLocation[0] = gridY;
         this.cursorLocation[1] = gridX;
-        console.log(this.cursorLocation);
     },
 
     resetInput: function() {
