@@ -136,9 +136,15 @@ InputManager.prototype = {
             var prevIndex = this.cursorLocation[0] - 1;
             var newCursorIndexX = currentControlRows[prevIndex].length;
 
-            currentControlRows[prevIndex] = currentControlRows[prevIndex]
-                                                + 'n'.repeat(this.drawCommands[prevIndex].length - currentControlRows[prevIndex].length)
-                                                + currentControlRows[this.cursorLocation[0]];
+            if (currentControlRows[prevIndex].length == 0 ||
+                    currentControlRows[prevIndex] == 'n'.repeat(currentControlRows[prevIndex].length)) {
+
+                currentControlRows[prevIndex] = currentControlRows[this.cursorLocation[0]];
+            } else {
+                currentControlRows[prevIndex] = currentControlRows[prevIndex]
+                                                    + 'n'.repeat(this.drawCommands[prevIndex].length - currentControlRows[prevIndex].length)
+                                                    + currentControlRows[this.cursorLocation[0]];
+            }
 
             var newControlString = "";
             for (var index = 0; index < currentControlRows.length; index++) {
