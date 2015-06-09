@@ -38,7 +38,7 @@
         imageController.drawImage(inputManager.drawCommands, inputManager.cursorLocation, shapeModel);
 
         // Set the control box's default visibility
-        document.getElementById("control_div").style.opacity=0.4;
+//        document.getElementById("control_div").style.opacity=0.4;
 
         window.onresize = function() { svgPane.clearPane(); imageController.drawImage(inputManager.drawCommands, inputManager.cursorLocation, shapeModel); };
         document.addEventListener("keydown", keyEventWrapper, false);
