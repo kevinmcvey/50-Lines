@@ -24,6 +24,7 @@
 
         function keyEventWrapper(keyEvent) {
             inputManager.handleKeyPress(keyEvent.keyCode);
+
             //Chromium doesn't like this from localhost. Commented out for use on raspberry pi
             //history.pushState("","","lines.html?" + inputManager.urlFriendlyDrawString);
 

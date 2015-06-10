@@ -41,6 +41,9 @@ InputManager.prototype = {
             case 8: /* BACKSPACE */
                 this.removeControlCharacter();
                 break;
+            case 80: /* P */
+                this.showDebugger();
+                break;
             default:
                 console.log("Invalid key, inserting null");
             case 78: /* n */
@@ -50,6 +53,13 @@ InputManager.prototype = {
         }
 
         this.updateDrawCommands(document.getElementById("draw_controls").value);
+    },
+
+    showDebugger: function() {
+        if (document.getElementById("control_div").style.opacity == 1.0)
+            document.getElementById("control_div").style.opacity = 0.0;
+        else
+            document.getElementById("control_div").style.opacity = 1.0;
     },
 
     moveCursorLeft: function() {
