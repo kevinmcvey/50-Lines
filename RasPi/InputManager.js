@@ -103,6 +103,17 @@ InputManager.prototype = {
         document.getElementById("draw_controls").value = this.DEFAULT_DRAW_STRING;
     },
 
+    repeat: function(character, times) {
+    	
+    	var string = "";
+
+    	for (var i = 0; i < times; i++) {
+    		string += character;
+		}
+
+		return string;
+    },
+
     /* Here we harmonize the need to represent the controls minimally in the URL/input-div and
      * maximally in the back-end array. 'n' characters are input as necessary to match the cursor location */
     insertControlCharacter: function(character) {
@@ -114,7 +125,7 @@ InputManager.prototype = {
             blanksToInsert = 0;
 
         controlStringRow = controlStringRow.slice(0, this.cursorLocation[1])
-                               + 'n'.repeat(blanksToInsert)
+                               + this.repeat('n', blanksToInsert)
                                + character
                                + controlStringRow.slice(this.cursorLocation[1]);
 
@@ -143,12 +154,12 @@ InputManager.prototype = {
             var newCursorIndexX = currentControlRows[prevIndex].length;
 
             if (currentControlRows[prevIndex].length == 0 ||
-                    currentControlRows[prevIndex] == 'n'.repeat(currentControlRows[prevIndex].length)) {
+                    currentControlRows[prevIndex] == this.repeat('n', currentControlRows[prevIndex].length)) {
 
                 currentControlRows[prevIndex] = currentControlRows[this.cursorLocation[0]];
             } else {
                 currentControlRows[prevIndex] = currentControlRows[prevIndex]
-                                                    + 'n'.repeat(this.drawCommands[prevIndex].length - currentControlRows[prevIndex].length)
+                                                    + this.repeat('n', this.drawCommands[prevIndex].length - currentControlRows[prevIndex].length)
                                                     + currentControlRows[this.cursorLocation[0]];
             }
 
