@@ -1,0 +1,5 @@
+@lxpanel --profile LXDE-pi
+@pcmanfm --desktop --profile LXDE-pi
+@xscreensaver -no-splash
+sudo /home/pi/50-Lines/RasPi/Keyboard/a.out
+/usr/bin/chromium --kiosk --ignore-certificate-errors --disable-restore-session-state file:///home/pi/50-Lines/RasPi/lines.html
