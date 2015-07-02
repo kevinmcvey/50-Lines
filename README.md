@@ -31,6 +31,8 @@ WiringPi : Keyboard : Action
 
 **Note** that the pins above are [WiringPi pins](http://wiringpi.com/pins/), and *do not* match the pin numbers used on the Raspberry Pi itself.
 
+A custom autostart script is also provided here in the event that your installation is intended to boot straight into this software. Simply modify the file locations on lines 4 & 5, and then place the file in your Pi's `/etc/xdg/lxsession/LXDE-pi/autostart` directory.
+
 ---
 
 ### Web
