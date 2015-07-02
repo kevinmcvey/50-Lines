@@ -1,6 +1,6 @@
 # 50-Lines
 
-Fifty Lines is an interactive conceptual art installation by Kevin McVey.
+50 Lines is an interactive conceptual art installation by Kevin McVey.
 
 Its purpose is to showcase and celebrate the subtle beauty of simple geometric patterns. Try it out [here](http://kevin.4mcveys.com/50/lines.html).
 
